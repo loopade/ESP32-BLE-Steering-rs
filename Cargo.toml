@@ -1,0 +1,40 @@
+[package]
+name = "esp32-ble-steering-rs"
+version = "0.1.0"
+authors = ["Loopade <m@baohuiming.net>"]
+edition = "2021"
+resolver = "2"
+rust-version = "1.77"
+
+[[bin]]
+name = "esp32-ble-steering-rs"
+harness = false # do not use the built in cargo test harness -> resolve rust-analyzer errors
+
+[profile.release]
+opt-level = "s"
+
+[profile.dev]
+debug = true    # Symbols are nice and they don't increase the size on Flash
+opt-level = "z"
+
+[features]
+default = []
+
+experimental = ["esp-idf-svc/experimental"]
+
+[dependencies]
+log = "0.4"
+esp-idf-svc = { version = "0.51", features = ["critical-section", "embassy-time-driver", "embassy-sync"] }
+esp-idf-hal = "0.45.2"
+anyhow = "1.0.98"
+futures = "0.3.31"
+mpu9250 = {version = "0.25.0", features = ["i2c", "dmp"]}
+serde = "1.0.219"
+embedded-hal = "1.0.0"
+esp32-nimble = "0.11.1"
+zerocopy = "0.8.25"
+zerocopy-derive = "0.8.25"
+bitflags = "2.9.1"
+
+[build-dependencies]
+embuild = "0.33"
