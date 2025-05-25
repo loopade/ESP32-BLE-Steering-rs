@@ -43,16 +43,7 @@ fn main() -> anyhow::Result<()> {
 
     let i2c_config = I2cConfig::new().baudrate(Hertz(400_000));
     let i2c = I2cDriver::new(i2c, sda, scl, &i2c_config)?;
-    let mut mpu = match MpuSensor::new(i2c) {
-        Ok(sensor) => {
-            info!("MPU sensor initialized successfully");
-            sensor
-        }
-        Err(e) => {
-            warn!("Failed to initialize MPU sensor: {:?}", e);
-            return Err(e);
-        }
-    };
+    let mut mpu = MpuSensor::new(i2c)?;
 
     let mut led = Switch::new(peripherals.pins.gpio2, false)?;
     let mut motor = Switch::new(peripherals.pins.gpio15, false)?;
@@ -67,7 +58,7 @@ fn main() -> anyhow::Result<()> {
         &adc,
         peripherals.pins.gpio34,
         peripherals.pins.gpio35,
-        peripherals.pins.gpio25,
+        peripherals.pins.gpio12,
         1600,
         AX_MIN,
         AX_MAX,
@@ -118,10 +109,10 @@ fn main() -> anyhow::Result<()> {
             PinDriver::input(peripherals.pins.gpio5.downgrade())?,
         ],
         [
+            PinDriver::output(peripherals.pins.gpio25.downgrade_output())?,
             PinDriver::output(peripherals.pins.gpio26.downgrade_output())?,
             PinDriver::output(peripherals.pins.gpio27.downgrade_output())?,
             PinDriver::output(peripherals.pins.gpio14.downgrade_output())?,
-            PinDriver::output(peripherals.pins.gpio12.downgrade_output())?,
         ],
         timer11,
     ) {
@@ -152,12 +143,10 @@ fn main() -> anyhow::Result<()> {
                 loop {
                     timer00.delay(10 * ms00).await.expect("Timer delay failed");
                     match mpu.roll() {
-                        Ok(roll) => {
+                        Some(roll) => {
                             ble_steering.set_steering(roll as i16);
                         }
-                        Err(e) => {
-                            warn!("Error reading roll: {:?}", e);
-                        }
+                        None => {}
                     }
                 }
             },

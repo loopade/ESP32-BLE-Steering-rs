@@ -28,7 +28,7 @@ fn quaternion_to_roll(q: [f64; 4], roll: f64) -> f64 {
 }
 
 pub struct MpuSensor<'a> {
-    mpu: Mpu9250<I2cDevice<I2cDriver<'a>>, Dmp>,
+    mpu: Option<Mpu9250<I2cDevice<I2cDriver<'a>>, Dmp>>,
     roll: f64,
 }
 
@@ -36,26 +36,33 @@ impl<'a> MpuSensor<'a> {
     pub fn new(i2c: I2cDriver<'a>) -> anyhow::Result<Self> {
         let mut delay = Delay::new_default();
         let mpu =
-            Mpu9250::dmp_default(i2c, &mut delay, &DMP_FIRMWARE).expect("Failed to initialize MPU");
+            Mpu9250::dmp_default(i2c, &mut delay, &DMP_FIRMWARE).ok();
         Ok(Self { mpu, roll: 0.0 })
     }
 
-    pub fn roll(&mut self) -> anyhow::Result<f64> {
-        let all = match self.mpu.dmp_all::<[f32; 3], [f64; 4]>() {
+    pub fn roll(&mut self) -> Option<f64> {
+        let mpu = match self.mpu {
+            Some(ref mut mpu) => mpu,
+            None => {
+                warn!("MPU sensor not initialized");
+                return None;
+            }
+        };
+        let all = match mpu.dmp_all::<[f32; 3], [f64; 4]>() {
             Ok(all) => all,
             Err(e) => {
                 warn!("Failed to read DMP data: {:?}", e);
-                return Ok(self.roll);
+                return None;
             }
         };
         match all.quaternion {
             Some(q) => {
                 self.roll = quaternion_to_roll(q, self.roll);
-                Ok(self.roll)
+                Some(self.roll)
             }
             None => {
                 warn!("No quaternion data available");
-                Ok(self.roll)
+                None
             }
         }
     }
