@@ -39,11 +39,11 @@ impl<'a, X: ADCPin, Y: ADCPin> Pedal<'a, X, Y> {
         Ok(Self {
             accelerator_adc,
             brake_adc,
-            deadzone,        // Default deadzone value
+            deadzone,              // Default deadzone value
             accelerator_min: 200,  // 0.2 V
             brake_min: 200,        // 0.2 V
-            accelerator_max: 3100, // 3.1 V
-            brake_max: 3100,       // 3.1 V
+            accelerator_max: 2700, // 2.7 V
+            brake_max: 2700,       // 2.7 V
             output_min,
             output_max,
         })
@@ -78,16 +78,9 @@ impl<'a, X: ADCPin, Y: ADCPin> Pedal<'a, X, Y> {
         }
 
         // Clamp the values to the output range
-        if accelerator_val < output_min {
-            accelerator_val = output_min;
-        } else if accelerator_val > output_max {
-            accelerator_val = output_max;
-        }
-        if brake_val < output_min {
-            brake_val = output_min;
-        } else if brake_val > output_max {
-            brake_val = output_max;
-        }
+        accelerator_val = accelerator_val.clamp(output_min, output_max);
+        brake_val = brake_val.clamp(output_min, output_max);
+
         Ok((accelerator_val as i16, brake_val as i16))
     }
 }

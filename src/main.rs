@@ -25,6 +25,9 @@ use ble::Steering;
 
 const AX_MAX: i16 = 32767;
 const AX_MIN: i16 = -32767;
+const SM_MAX: i16 = 32767;
+const SM_MIN: i16 = 0;
+const STEERING_ROTATION_ANGLE: f32 = 900.0;
 
 fn main() -> anyhow::Result<()> {
     esp_idf_hal::sys::link_patches();
@@ -78,9 +81,9 @@ fn main() -> anyhow::Result<()> {
         &adc,
         peripherals.pins.gpio32,
         peripherals.pins.gpio33,
-        800,
-        0,
-        AX_MAX,
+        2000,
+        SM_MIN,
+        SM_MAX,
     ) {
         Ok(pedal) => {
             info!("Pedal initialized successfully");
@@ -144,6 +147,10 @@ fn main() -> anyhow::Result<()> {
                     timer00.delay(10 * ms00).await.expect("Timer delay failed");
                     match mpu.roll() {
                         Some(roll) => {
+                            let roll = roll.clamp(-STEERING_ROTATION_ANGLE / 2.0, STEERING_ROTATION_ANGLE / 2.0);
+                            let report_ratio =
+                                (SM_MAX - SM_MIN) as f32 / STEERING_ROTATION_ANGLE;
+                            let roll = (roll + STEERING_ROTATION_ANGLE / 2.0) * report_ratio;
                             ble_steering.set_steering(roll as i16);
                         }
                         None => {}

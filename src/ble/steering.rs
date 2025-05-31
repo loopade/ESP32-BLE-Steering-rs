@@ -4,6 +4,7 @@ use esp32_nimble::{
     enums::*, hid::*, utilities::mutex::Mutex, BLEAdvertisementData, BLECharacteristic, BLEDevice,
     BLEHIDDevice, BLEServer,
 };
+use log::info;
 use std::sync::Arc;
 use zerocopy::IntoBytes;
 use zerocopy_derive::{Immutable, IntoBytes};
@@ -24,6 +25,18 @@ const HID_REPORT_DESCRIPTOR: &[u8] = hid!(
     (USAGE_MAXIMUM, 32),   // Button 32
     (REPORT_COUNT, 32),    // 32 buttons
     (HIDINPUT, 0x02),      // INPUT (Data,Var,Abs)
+    // ------------------------------------ Steerings
+    (USAGE_PAGE, 0x02),            // Simulation Controls
+    (LOGICAL_MINIMUM, 0x00, 0x00), // -32767
+    (LOGICAL_MAXIMUM, 0xFF, 0x7F), // 32767
+    (REPORT_SIZE, 16),
+    (REPORT_COUNT, 3),  // 2 axes
+    (COLLECTION, 0x00), // Physical
+    (USAGE, 0xC8),      // Steering
+    (USAGE, 0xC4),      // Accelerator
+    (USAGE, 0xC5),      // Brake
+    (HIDINPUT, 0x02),   // INPUT (Data,Var,Abs)
+    (END_COLLECTION),   // Physical(End)
     // ----------------------------------- Axes
     (USAGE_PAGE, 0x01),            // Generic Desktop
     (LOGICAL_MINIMUM, 0x01, 0x80), // -32767
@@ -35,18 +48,6 @@ const HID_REPORT_DESCRIPTOR: &[u8] = hid!(
     (USAGE, 0x31),      // Y
     (HIDINPUT, 0x02),   // INPUT (Data,Var,Abs)
     (END_COLLECTION),   // Physical(End)
-    // ------------------------------------ Steerings
-    (USAGE_PAGE, 0x02),            // Simulation Controls
-    (LOGICAL_MINIMUM, 0x01, 0x80), // -32767
-    (LOGICAL_MAXIMUM, 0xFF, 0x7F), // 32767
-    (REPORT_SIZE, 16),
-    (REPORT_COUNT, 3),  // 2 axes
-    (COLLECTION, 0x00), // Physical
-    (USAGE, 0xC4),      // Accelerator
-    (USAGE, 0xC5),      // Brake
-    (USAGE, 0xC8),      // Steering
-    (HIDINPUT, 0x02),   // INPUT (Data,Var,Abs)
-    (END_COLLECTION),   // Physical(End)
     // ------------------------------------ Application(End)
     (END_COLLECTION)
 );
@@ -54,11 +55,11 @@ const HID_REPORT_DESCRIPTOR: &[u8] = hid!(
 #[repr(packed)]
 struct SteeringReport {
     buttons: u32,
-    x: i16,
-    y: i16,
+    steering: i16,
     accelerator: i16,
     brake: i16,
-    steering: i16,
+    x: i16,
+    y: i16,
 }
 
 pub struct Steering {

@@ -105,16 +105,9 @@ impl<'a, X: ADCPin, Y: ADCPin, BTN: InputPin + OutputPin> Joystick<'a, X, Y, BTN
             y_val = output_mid;
         }
         // Clamp the values to the output range
-        if x_val < output_min {
-            x_val = output_min;
-        } else if x_val > output_max {
-            x_val = output_max;
-        }
-        if y_val < output_min {
-            y_val = output_min;
-        } else if y_val > output_max {
-            y_val = output_max;
-        }
+        x_val = x_val.clamp(output_min, output_max);
+        y_val = y_val.clamp(output_min, output_max);
+        
         Ok((x_val as i16, y_val as i16, btn_pressed))
     }
 }
