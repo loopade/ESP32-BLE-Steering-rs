@@ -4,7 +4,7 @@ use esp32_nimble::{
     enums::*, hid::*, utilities::mutex::Mutex, BLEAdvertisementData, BLECharacteristic, BLEDevice,
     BLEHIDDevice, BLEServer,
 };
-use log::info;
+// use log::info;
 use std::sync::Arc;
 use zerocopy::IntoBytes;
 use zerocopy_derive::{Immutable, IntoBytes};
