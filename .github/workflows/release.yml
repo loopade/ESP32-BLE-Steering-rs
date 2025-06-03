@@ -33,12 +33,12 @@ jobs:
       - name: Build Firmware
         run: |
           source $HOME/export-esp.sh
-          cargo espflash save-image --release --chip esp32 target/xtensa-esp32-espidf/release/firmware.bin
+          cargo espflash save-image --release --chip esp32 target/xtensa-esp32-espidf/release/esp32.bin
 
       - name: Package Artifacts
         run: |
           mkdir dist
-          cp $GITHUB_WORKSPACE/target/xtensa-esp32-espidf/release/firmware.bin dist/
+          cp $GITHUB_WORKSPACE/target/xtensa-esp32-espidf/release/esp32.bin dist/
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
