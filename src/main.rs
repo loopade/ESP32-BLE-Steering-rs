@@ -53,6 +53,8 @@ fn main() -> anyhow::Result<()> {
 
     let mut gear_drive = Button::new(peripherals.pins.gpio18, false)?;
     let mut gear_reverse = Button::new(peripherals.pins.gpio19, false)?;
+    let mut gear_left = Button::new(peripherals.pins.gpio12, false)?;
+    let mut gear_right = Button::new(peripherals.pins.gpio13, false)?;
 
     let adc = AdcDriver::new(peripherals.adc1)?;
 
@@ -61,7 +63,7 @@ fn main() -> anyhow::Result<()> {
         &adc,
         peripherals.pins.gpio34,
         peripherals.pins.gpio35,
-        peripherals.pins.gpio12,
+        peripherals.pins.gpio23,
         1600,
         AX_MIN,
         AX_MAX,
@@ -81,7 +83,7 @@ fn main() -> anyhow::Result<()> {
         &adc,
         peripherals.pins.gpio32,
         peripherals.pins.gpio33,
-        2000,
+        700,
         SM_MIN,
         SM_MAX,
     ) {
@@ -224,6 +226,30 @@ fn main() -> anyhow::Result<()> {
                         }
                         Err(e) => {
                             warn!("Error reading gear reverse: {:?}", e);
+                        }
+                    }
+                    match gear_left.read() {
+                        Ok(pressed) => {
+                            if pressed {
+                                states |= 1 << 19; // Gear left pressed
+                            } else {
+                                states &= !(1 << 19); // Gear left released
+                            }
+                        }
+                        Err(e) => {
+                            warn!("Error reading gear left: {:?}", e);
+                        }
+                    }
+                    match gear_right.read() {
+                        Ok(pressed) => {
+                            if pressed {
+                                states |= 1 << 20; // Gear right pressed
+                            } else {
+                                states &= !(1 << 20); // Gear right released
+                            }
+                        }
+                        Err(e) => {
+                            warn!("Error reading gear right: {:?}", e);
                         }
                     }
                     ble_steering.set_buttons(states);
