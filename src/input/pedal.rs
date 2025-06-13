@@ -4,7 +4,7 @@ use esp_idf_hal::adc::oneshot::config::Calibration::Line;
 use esp_idf_hal::adc::oneshot::{AdcChannelDriver, AdcDriver};
 use esp_idf_hal::adc::Resolution::Resolution12Bit;
 use esp_idf_hal::gpio::ADCPin;
-use log::info;
+// use log::info;
 
 pub struct Pedal<'a, X: ADCPin, Y: ADCPin> {
     accelerator_adc: AdcChannelDriver<'a, X, &'a AdcDriver<'a, X::Adc>>,
